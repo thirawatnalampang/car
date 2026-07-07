@@ -5,7 +5,8 @@ function Home() {
   const [cars, setCars] = useState([]);
   const [editingId, setEditingId] = useState(null);
   const [search, setSearch] = useState("");
-
+  const [currentPage, setCurrentPage] = useState(1);
+  const carsPerPage = 10;
   const [form, setForm] = useState({
     license_plate: "",
     brand: "",
@@ -18,9 +19,13 @@ function Home() {
   }, []);
 
   const fetchCars = async () => {
-    const res = await api.get("/cars");
-    setCars(res.data);
-  };
+  const res = await api.get("/cars");
+
+  // เรียงข้อมูลใหม่ล่าสุดขึ้นก่อน
+  const sortedCars = res.data.sort((a, b) => b.id - a.id);
+
+  setCars(sortedCars);
+};
 
   const handleChange = (e) => {
     setForm({
@@ -29,36 +34,33 @@ function Home() {
     });
   };
 
-  const submitForm = async (e) => {
-    e.preventDefault();
+ const submitForm = async (e) => {
+  e.preventDefault();
 
-    if (
-      !form.license_plate ||
-      !form.brand ||
-      !form.model
-    ) {
-      alert("กรุณากรอกข้อมูลให้ครบ");
-      return;
-    }
+  if (!form.license_plate || !form.brand || !form.model) {
+    alert("กรุณากรอกข้อมูลให้ครบ");
+    return;
+  }
 
-    if (editingId) {
-      await api.put(`/cars/${editingId}`, form);
-      alert("แก้ไขข้อมูลสำเร็จ");
-    } else {
-      await api.post("/cars", form);
-      alert("เพิ่มข้อมูลสำเร็จ");
-    }
+  if (editingId) {
+    await api.put(`/cars/${editingId}`, form);
+    alert("แก้ไขข้อมูลสำเร็จ");
+  } else {
+    await api.post("/cars", form);
+    alert("เพิ่มข้อมูลสำเร็จ");
+  }
 
-    setForm({
-      license_plate: "",
-      brand: "",
-      model: "",
-      note: "",
-    });
+  setForm({
+    license_plate: "",
+    brand: "",
+    model: "",
+    note: "",
+  });
 
-    setEditingId(null);
-    fetchCars();
-  };
+  setEditingId(null);
+  setCurrentPage(1); 
+  fetchCars();
+};
 
   const editCar = (car) => {
     setEditingId(car.id);
@@ -77,24 +79,30 @@ function Home() {
   };
 
   const deleteCar = async (id) => {
-    if (!window.confirm("ต้องการลบข้อมูลนี้ใช่ไหม?")) return;
+  if (!window.confirm("ต้องการลบข้อมูลนี้ใช่ไหม?")) return;
 
-    await api.delete(`/cars/${id}`);
+  await api.delete(`/cars/${id}`);
 
-    alert("ลบข้อมูลสำเร็จ");
+  alert("ลบข้อมูลสำเร็จ");
 
-    fetchCars();
-  };
+  fetchCars();
+};
 
-  const filteredCars = cars.filter(
-    (car) =>
-      car.license_plate
-        .toLowerCase()
-        .includes(search.toLowerCase()) ||
-      car.brand
-        .toLowerCase()
-        .includes(search.toLowerCase())
-  );
+const filteredCars = cars.filter(
+  (car) =>
+    car.license_plate.toLowerCase().includes(search.toLowerCase()) ||
+    car.brand.toLowerCase().includes(search.toLowerCase())
+);
+
+const indexOfLastCar = currentPage * carsPerPage;
+const indexOfFirstCar = indexOfLastCar - carsPerPage;
+
+const currentCars = filteredCars.slice(
+  indexOfFirstCar,
+  indexOfLastCar
+);
+
+const totalPages = Math.ceil(filteredCars.length / carsPerPage);
 
   return (
     <>
@@ -192,13 +200,16 @@ function Home() {
               🚙 จำนวนรถทั้งหมด <strong>{cars.length}</strong> คัน
             </div>
 
-            <input
-              type="text"
-              className="form-control mb-3"
-              placeholder="🔍 ค้นหาทะเบียนรถ หรือ ยี่ห้อ"
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-            />
+           <input
+  type="text"
+  className="form-control mb-3"
+  placeholder="🔍 ค้นหาทะเบียนรถ หรือ ยี่ห้อ"
+  value={search}
+  onChange={(e) => {
+    setSearch(e.target.value);
+    setCurrentPage(1);
+  }}
+/>
 
             <table className="table table-bordered table-hover">
 
@@ -232,7 +243,7 @@ function Home() {
 
                 ) : (
 
-                  filteredCars.map((car) => (
+                  currentCars.map((car) => (
 
                     <tr key={car.id}>
 
@@ -269,7 +280,37 @@ function Home() {
               </tbody>
 
             </table>
+<div className="d-flex justify-content-center align-items-center gap-2 mt-3">
+  <button
+    className="btn btn-secondary"
+    disabled={currentPage === 1}
+    onClick={() => setCurrentPage(currentPage - 1)}
+  >
+    ก่อนหน้า
+  </button>
 
+  {Array.from({ length: totalPages }, (_, i) => (
+    <button
+      key={i + 1}
+      className={`btn ${
+        currentPage === i + 1
+          ? "btn-primary"
+          : "btn-outline-primary"
+      }`}
+      onClick={() => setCurrentPage(i + 1)}
+    >
+      {i + 1}
+    </button>
+  ))}
+
+  <button
+    className="btn btn-secondary"
+    disabled={currentPage === totalPages || totalPages === 0}
+    onClick={() => setCurrentPage(currentPage + 1)}
+  >
+    ถัดไป
+  </button>
+</div>
           </div>
 
         </div>
