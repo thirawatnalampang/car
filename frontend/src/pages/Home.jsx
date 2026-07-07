@@ -1,6 +1,11 @@
 import { useEffect, useState } from "react";
 import api from "../services/api";
-
+import {
+  FaCar,
+  FaSearch,
+  FaEdit,
+  FaTrash,
+} from "react-icons/fa";
 function Home() {
   const [cars, setCars] = useState([]);
   const [editingId, setEditingId] = useState(null);
@@ -109,8 +114,9 @@ const totalPages = Math.ceil(filteredCars.length / carsPerPage);
       <nav className="navbar navbar-dark bg-dark shadow">
         <div className="container">
           <span className="navbar-brand fs-3">
-            🚗 Car Management System
-          </span>
+  <FaCar className="me-2" />
+  Car Management System
+</span>
         </div>
       </nav>
 
@@ -197,19 +203,26 @@ const totalPages = Math.ceil(filteredCars.length / carsPerPage);
             <hr />
 
             <div className="alert alert-info">
-              🚙 จำนวนรถทั้งหมด <strong>{cars.length}</strong> คัน
-            </div>
+  <FaCar className="me-2" />
+  จำนวนรถทั้งหมด <strong>{cars.length}</strong> คัน
+</div>
 
-           <input
-  type="text"
-  className="form-control mb-3"
-  placeholder="🔍 ค้นหาทะเบียนรถ หรือ ยี่ห้อ"
-  value={search}
-  onChange={(e) => {
-    setSearch(e.target.value);
-    setCurrentPage(1);
-  }}
-/>
+<div className="input-group mb-3">
+  <span className="input-group-text">
+    <FaSearch />
+  </span>
+
+  <input
+    type="text"
+    className="form-control"
+    placeholder="ค้นหาทะเบียนรถ หรือ ยี่ห้อ"
+    value={search}
+    onChange={(e) => {
+      setSearch(e.target.value);
+      setCurrentPage(1);
+    }}
+  />
+</div>
 
             <table className="table table-bordered table-hover">
 
@@ -255,19 +268,21 @@ const totalPages = Math.ceil(filteredCars.length / carsPerPage);
 
                       <td>
 
-                        <button
-                          className="btn btn-warning btn-sm me-2"
-                          onClick={() => editCar(car)}
-                        >
-                          ✏️ แก้ไข
-                        </button>
+                       <button
+  className="btn btn-warning btn-sm me-2"
+  onClick={() => editCar(car)}
+>
+  <FaEdit className="me-1" />
+  แก้ไข
+</button>
 
-                        <button
-                          className="btn btn-danger btn-sm"
-                          onClick={() => deleteCar(car.id)}
-                        >
-                          🗑️ ลบ
-                        </button>
+<button
+  className="btn btn-danger btn-sm"
+  onClick={() => deleteCar(car.id)}
+>
+  <FaTrash className="me-1" />
+  ลบ
+</button>
 
                       </td>
 
